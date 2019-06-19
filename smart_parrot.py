@@ -6,7 +6,8 @@ import nltk
 
 from Database.database import close_database, connect_database, delete_table_data
 from Transmission.print_scheme import print_function
-from Turing.persona import dialog, nltk_ignition
+from Turing.persona import nltk_ignition
+from Web.web_application import app
 
 # Log parameters adjustment call
 # _ Hour (24 hours format)
@@ -47,7 +48,12 @@ def application():
         opt = print_function('IN', '\nChoose the next step:  ')
 
         if opt is '1':
-            dialog()
+            # dialog()
+
+            app.run()
+            while True:
+                return True
+
         elif opt is 'D':
             delete_table_data()
         elif opt is 'E':
