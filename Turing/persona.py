@@ -1,17 +1,24 @@
 # Libraries
+from random import choice
 from string import punctuation
 
 import enchant
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 
-from Database.database import *
+from Database.database import database_find_strings, database_add_string, database_fetch_answer, \
+    database_add_related_string, strings_table, answer_table, \
+    fetch_column_name_list
 from Transmission.print_scheme import print_function
 from replacers import RegexpReplacer
 
 replacer = None
 word_dict = None
 stops = None
+
+
+def be_or_not_to_be():
+    return choice([True, False])
 
 
 def nltk_ignition():
@@ -122,21 +129,21 @@ def dialog():
                 data = database_find_strings(answer_table, 'string', content)
                 print_function('OUT', database_fetch_answer(data[0]))
 
-                new_answer = print_function('IN', '\n\nPress ENTER to continue, or please, '
-                                                  'teach me another answer for this question.\n--> ')
+                if be_or_not_to_be() is True:
+                    new_answer = print_function('IN', '\n\nPlease, teach me another answer for this question.\n--> ')
 
-                if new_answer is not '':
-                    database_add_related_string(answer_table, content, new_answer)
+                    if new_answer is not '':
+                        database_add_related_string(answer_table, content, new_answer)
 
         else:
             database_add_string(concat, '')
             data = database_find_strings(answer_table, 'string', concat)
             print_function('OUT', database_fetch_answer(data[0]))
 
-            new_answer = print_function('IN', '\n\nPress ENTER to continue, or please, '
-                                              'teach me another answer for this question.\n--> ')
+            if be_or_not_to_be() is True:
+                new_answer = print_function('IN', '\n\nPlease, teach me another answer for this question.\n--> ')
 
-            if new_answer is not '':
-                database_add_related_string(answer_table, concat, new_answer)
+                if new_answer is not '':
+                    database_add_related_string(answer_table, concat, new_answer)
 
     return
