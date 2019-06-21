@@ -24,7 +24,7 @@ answer_table_sql = "CREATE TABLE {} (string TEXT NOT NULL PRIMARY KEY UNIQUE," \
                    "oc0 TEXT)".format(answer_table)
 
 
-def fetch_column_name_list(table):
+def database_fetch_column_name_list(table):
     column_name_list = []
     cursor = conn.cursor()
     sql = "SELECT * FROM {}".format(table)
@@ -42,8 +42,8 @@ def database_fetch_answer(content):
     i = 'nw0'
     qty = 0
 
-    index = fetch_column_name_list(answer_table).index('nw0')
-    column_names = fetch_column_name_list(answer_table)
+    index = database_fetch_column_name_list(answer_table).index('nw0')
+    column_names = database_fetch_column_name_list(answer_table)
 
     while True:
         if i in column_names:
@@ -70,8 +70,8 @@ def database_fetch_object_list(table, content, artifact):
     i = artifact + '0'
     qty = 0
 
-    index = fetch_column_name_list(table).index(i)
-    column_names = fetch_column_name_list(table)
+    index = database_fetch_column_name_list(table).index(i)
+    column_names = database_fetch_column_name_list(table)
 
     while True:
         if i in column_names:
@@ -114,7 +114,7 @@ def database_add_string(string, small):
         new_string = True
     else:
         line_data = data[0]
-        occurrences = str(int(line_data[fetch_column_name_list(strings_table).index('occurrences')]) + 1)
+        occurrences = str(int(line_data[database_fetch_column_name_list(strings_table).index('occurrences')]) + 1)
         sql = "UPDATE {} SET occurrences = {} WHERE string = '{}'".format(strings_table, occurrences, string)
         cursor.execute(sql)
 
@@ -150,7 +150,7 @@ def database_add_related_string(table, string, answer):
         qty_col = 0
         i = 'nw0'
 
-        column_names = fetch_column_name_list(table)
+        column_names = database_fetch_column_name_list(table)
 
         while True:
             if i in column_names:
@@ -199,6 +199,17 @@ def database_find_strings(table, column, string):
     """
     cursor = conn.cursor()
     sql = "SELECT * FROM {} WHERE {} = '{}'".format(table, column, string)
+    cursor.execute(sql)
+    return cursor.fetchall()
+
+
+def database_bring_tablet(table):
+    """
+    :param table:
+    :return:
+    """
+    cursor = conn.cursor()
+    sql = "SELECT * FROM {}".format(table)
     cursor.execute(sql)
     return cursor.fetchall()
 
