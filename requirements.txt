@@ -1,2 +1,4 @@
 pyenchant
 nltk
+flask
+numpy

@@ -6,7 +6,7 @@ import nltk
 
 from Database.database import close_database, connect_database, delete_table_data
 from Transmission.print_scheme import print_function
-from Turing.persona import dialog, nltk_ignition
+from Turing.persona import nltk_ignition, dialog
 
 # Log parameters adjustment call
 # _ Hour (24 hours format)
