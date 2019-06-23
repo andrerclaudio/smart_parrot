@@ -3,19 +3,20 @@ from random import choice
 from string import punctuation
 
 import enchant
-import numpy as np
+import numpy
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 
 from Database.database import database_find_strings, database_add_string, database_fetch_answer, \
     database_add_related_string, strings_table, answer_table, \
-    database_fetch_column_name_list, database_bring_tablet
+    database_list_column_names, database_bring_tablet
 from Transmission.print_scheme import print_function
 from replacers import RegexpReplacer
 
 replacer = None
 word_dict = None
 stops = None
+last_question = None
 
 
 def be_or_not_to_be():
@@ -62,6 +63,14 @@ def remove_punctuation(content_with_punctuation):
     return content_without_punctuation
 
 
+def make_question():
+    pass
+
+
+def await_question():
+    pass
+
+
 def dialog():
     while True:
 
@@ -71,8 +80,8 @@ def dialog():
                 obj_string = []
                 obj_prob = []
 
-                index_occurrences = database_fetch_column_name_list(strings_table).index('occurrences')
-                index_string = database_fetch_column_name_list(strings_table).index('string')
+                index_occurrences = database_list_column_names(strings_table).index('occurrences')
+                index_string = database_list_column_names(strings_table).index('string')
 
                 for i in all_table:
                     obj_string.append(i[index_string])
@@ -100,9 +109,17 @@ def dialog():
                     fix = float(obj_prob[index_p]) - diff
                     obj_prob[index_p] = str(fix)
 
-            active_question = np.random.choice(obj_string, p=obj_prob)
-            answer = print_function('IN', '\n\n[ME]  --> {}\n'
-                                          '[YOU] --> '.format(active_question)).lower()
+                if last_question is None:
+                    active_question = numpy.random.choice(obj_string, p=obj_prob)
+                    answer = print_function('IN', '\n\n[ME]  --> {}\n'
+                                                  '[YOU] --> '.format(active_question)).lower()
+                else:
+                    pass
+
+                if answer.isprintable():
+                    if answer.isspace() is False:
+                        answer = replacer.replace(answer)
+                        database_add_related_string(answer_table, active_question, answer)
 
         else:
 
@@ -122,11 +139,11 @@ def dialog():
                 break
 
             # Normalize the content exchanging the contraction form of words with its complete format.
-            content = replacer.replace(content)
-            concat = remove_punctuation(content)
+            bkp_content = content
+            content = remove_punctuation(replacer.replace(content))
 
             # Check if the entire content is already added into the database table.
-            data = database_find_strings(strings_table, 'string', concat)
+            data = database_find_strings(strings_table, 'string', content)
 
             if len(data) is 0:
                 # If there is no occurrence yet for the same string, let's take off the stopwords.
@@ -137,7 +154,7 @@ def dialog():
                 if len(data) is 0:
                     # Until here, if We did not find the input string in the database, the sentence must be sliced into
                     # small parts, using punctuation rules to perform this segmentation.
-                    content = sent_tokenize(content)
+                    content = sent_tokenize(bkp_content)
                     length = len(content)
 
                     for i in content:
@@ -162,11 +179,8 @@ def dialog():
                             print_function('OUT', database_fetch_answer(data[0]) + '\n')
 
                 else:
-                    data = database_find_strings(strings_table, 'small', small_content)
-
-                    index = database_fetch_column_name_list(answer_table).index('string')
                     content = data[0]
-                    content = content[index]
+                    content = content[database_list_column_names(strings_table).index('string')]
                     database_add_string(content, '')
                     data = database_find_strings(answer_table, 'string', content)
                     print_function('OUT', database_fetch_answer(data[0]))
@@ -178,14 +192,14 @@ def dialog():
                             database_add_related_string(answer_table, content, new_answer)
 
             else:
-                database_add_string(concat, '')
-                data = database_find_strings(answer_table, 'string', concat)
+                database_add_string(content, '')
+                data = database_find_strings(answer_table, 'string', content)
                 print_function('OUT', database_fetch_answer(data[0]))
 
                 if be_or_not_to_be() is True:
                     new_answer = print_function('IN', '\n\nPlease, teach me another answer for this question.\n--> ')
 
                     if new_answer is not '':
-                        database_add_related_string(answer_table, concat, new_answer)
+                        database_add_related_string(answer_table, content, new_answer)
 
     return

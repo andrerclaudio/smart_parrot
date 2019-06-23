@@ -11,6 +11,7 @@ from Transmission.print_scheme import print_function
 # Global variables
 strings_table = 'strings'  # Table name
 answer_table = 'answer'
+question_table = 'question'
 database = None  # Database path variable
 conn = None  # Connection index to the database file
 
@@ -23,8 +24,12 @@ answer_table_sql = "CREATE TABLE {} (string TEXT NOT NULL PRIMARY KEY UNIQUE," \
                    "nw0 TEXT," \
                    "oc0 TEXT)".format(answer_table)
 
+question_table_sql = "CREATE TABLE {} (string TEXT NOT NULL PRIMARY KEY UNIQUE," \
+                     "nw0 TEXT," \
+                     "oc0 TEXT)".format(question_table)
 
-def database_fetch_column_name_list(table):
+
+def database_list_column_names(table):
     column_name_list = []
     cursor = conn.cursor()
     sql = "SELECT * FROM {}".format(table)
@@ -42,8 +47,8 @@ def database_fetch_answer(content):
     i = 'nw0'
     qty = 0
 
-    index = database_fetch_column_name_list(answer_table).index('nw0')
-    column_names = database_fetch_column_name_list(answer_table)
+    index = database_list_column_names(answer_table).index('nw0')
+    column_names = database_list_column_names(answer_table)
 
     while True:
         if i in column_names:
@@ -70,8 +75,8 @@ def database_fetch_object_list(table, content, artifact):
     i = artifact + '0'
     qty = 0
 
-    index = database_fetch_column_name_list(table).index(i)
-    column_names = database_fetch_column_name_list(table)
+    index = database_list_column_names(table).index(i)
+    column_names = database_list_column_names(table)
 
     while True:
         if i in column_names:
@@ -103,7 +108,7 @@ def database_add_string(string, small):
     cursor = conn.cursor()
     data = database_find_strings(strings_table, 'string', string)
 
-    if len(data) == 0:
+    if len(data) is 0:
         sql = "INSERT INTO {} (string, small, type, occurrences) VALUES (?, ?, ?, ?)".format(strings_table)
         val = (string, small, '%Passive', '1')
         cursor.execute(sql, val)
@@ -114,7 +119,7 @@ def database_add_string(string, small):
         new_string = True
     else:
         line_data = data[0]
-        occurrences = str(int(line_data[database_fetch_column_name_list(strings_table).index('occurrences')]) + 1)
+        occurrences = str(int(line_data[database_list_column_names(strings_table).index('occurrences')]) + 1)
         sql = "UPDATE {} SET occurrences = {} WHERE string = '{}'".format(strings_table, occurrences, string)
         cursor.execute(sql)
 
@@ -150,7 +155,7 @@ def database_add_related_string(table, string, answer):
         qty_col = 0
         i = 'nw0'
 
-        column_names = database_fetch_column_name_list(table)
+        column_names = database_list_column_names(table)
 
         while True:
             if i in column_names:
@@ -224,6 +229,8 @@ def delete_table_data():
         cursor.execute(sql)
         sql = "DROP TABLE IF EXISTS {}".format(answer_table)
         cursor.execute(sql)
+        sql = "DROP TABLE IF EXISTS {}".format(question_table)
+        cursor.execute(sql)
 
         conn.commit()
         print_function('OUT', '\n\nAll data were deleted!')
@@ -233,6 +240,7 @@ def delete_table_data():
     try:
         create_table(strings_table_sql)
         create_table(answer_table_sql)
+        create_table(question_table_sql)
 
     except Error as e:
         logging.error(e)
